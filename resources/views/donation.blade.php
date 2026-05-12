@@ -30,5 +30,36 @@
     </div>
 
     <p class="text-gray-500 text-sm">Tout don est entièrement facultatif. Merci du fond du cœur ! 🙏</p>
+
+    {{-- Derniers donateurs --}}
+    @if($donations->isNotEmpty())
+    <div class="mt-16">
+        <h2 class="text-2xl font-bold text-white mb-6">🏆 Derniers soutiens</h2>
+        <div class="space-y-3">
+            @foreach($donations as $don)
+            <div class="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-left">
+                <div class="text-2xl mt-0.5">
+                    {{ $don->platform === 'kofi' ? '☕' : '🎉' }}
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-white">{{ $don->username }}</span>
+                        @if($don->amount)
+                            <span class="text-xs bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded-full">
+                                {{ number_format($don->amount, 2) }} {{ $don->currency }}
+                            </span>
+                        @endif
+                        <span class="text-xs text-gray-500 ml-auto">{{ $don->created_at->diffForHumans() }}</span>
+                    </div>
+                    @if($don->message)
+                        <p class="text-gray-400 text-sm mt-1 italic">"{{ $don->message }}"</p>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
 </div>
 @endsection
