@@ -8,6 +8,7 @@ use App\Http\Controllers\DonationController;
 use App\Http\Controllers\PereController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\VideoController;
+use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SetupItemController;
@@ -21,6 +22,10 @@ Route::get('/dons', [DonationController::class, 'index'])->name('donation');
 Route::get('/mon-pere', [PereController::class, 'index'])->name('pere');
 Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
 Route::get('/videos', [VideoController::class, 'index'])->name('videos');
+
+// Webhooks dons (CSRF exclu dans bootstrap/app.php)
+Route::post('/webhook/kofi', [WebhookController::class, 'kofi'])->name('webhook.kofi');
+Route::post('/webhook/tipeee', [WebhookController::class, 'tipeee'])->name('webhook.tipeee');
 
 if (file_exists(__DIR__.'/auth.php')) {
     require __DIR__.'/auth.php';
