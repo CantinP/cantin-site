@@ -1,34 +1,37 @@
 @extends('layouts.admin')
 @section('title', 'Sections de contenu')
 @section('content')
-<div class="flex justify-between items-center mb-6">
-    <p class="text-gray-400">{{ $sections->count() }} sections</p>
-    <a href="{{ route('admin.sections.create') }}" class="btn-primary">+ Ajouter</a>
-</div>
-<table class="w-full text-sm border border-gray-800 rounded-xl overflow-hidden">
-    <thead class="bg-gray-800 text-gray-400">
-        <tr>
-            <th class="text-left px-4 py-2">Slug</th>
-            <th class="text-left px-4 py-2">Titre</th>
-            <th class="px-4 py-2">Visible</th>
-            <th class="px-4 py-2">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($sections as $section)
-        <tr class="border-t border-gray-800 hover:bg-gray-900">
-            <td class="px-4 py-3 font-mono text-purple-300 text-xs">{{ $section->slug }}</td>
-            <td class="px-4 py-3">{{ $section->title }}</td>
-            <td class="px-4 py-3 text-center">{{ $section->is_visible ? '✅' : '❌' }}</td>
-            <td class="px-4 py-3 text-center flex gap-2 justify-center">
-                <a href="{{ route('admin.sections.edit', $section) }}" class="text-purple-400 hover:text-purple-300">Modifier</a>
-                <form action="{{ route('admin.sections.destroy', $section) }}" method="POST" onsubmit="return confirm('Supprimer ?')">
-                    @csrf @method('DELETE')
-                    <button class="text-red-400 hover:text-red-300">Supprimer</button>
-                </form>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+<section class="admin-panel">
+    <div class="admin-panel-header">
+        <div>
+            <h2 class="admin-panel-title">Textes et blocs du site</h2>
+            <p class="admin-panel-subtitle">Idéal pour modifier l'accueil, la section don, la présentation de ton père, etc.</p>
+        </div>
+        <a href="{{ route('admin.sections.create') }}" class="btn-primary">+ Ajouter une section</a>
+    </div>
+
+    <div class="grid gap-4">
+        @forelse($sections as $section)
+            <article class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h3 class="font-semibold text-white text-lg">{{ $section->title ?: 'Sans titre' }}</h3>
+                        <span class="admin-badge">{{ $section->slug }}</span>
+                        {!! $section->is_visible ? '<span class="text-emerald-400 text-sm">Visible</span>' : '<span class="text-slate-500 text-sm">Masquée</span>' !!}
+                    </div>
+                    <p class="text-sm text-slate-400 mt-2 line-clamp-2">{{ strip_tags($section->content) ?: 'Aucun contenu' }}</p>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <a href="{{ route('admin.sections.edit', $section) }}" class="btn-secondary">Modifier</a>
+                    <form action="{{ route('admin.sections.destroy', $section) }}" method="POST" onsubmit="return confirm('Supprimer cette section ?')">
+                        @csrf @method('DELETE')
+                        <button class="btn-danger">Supprimer</button>
+                    </form>
+                </div>
+            </article>
+        @empty
+            <div class="text-center text-slate-500 py-12">Aucune section créée.</div>
+        @endforelse
+    </div>
+</section>
 @endsection

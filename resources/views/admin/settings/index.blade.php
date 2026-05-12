@@ -1,30 +1,47 @@
 @extends('layouts.admin')
 @section('title', 'Paramètres')
 @section('content')
-<div class="max-w-4xl">
+<div class="space-y-6">
     @foreach($settings as $group => $items)
-        <h2 class="text-purple-400 font-bold uppercase tracking-widest text-sm mb-3 mt-8">{{ $group }}</h2>
-        <table class="w-full text-sm mb-6 border border-gray-800 rounded-xl overflow-hidden">
-            <thead class="bg-gray-800 text-gray-400">
-                <tr>
-                    <th class="text-left px-4 py-2">Label</th>
-                    <th class="text-left px-4 py-2">Valeur</th>
-                    <th class="px-4 py-2"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($items as $setting)
-                    <tr class="border-t border-gray-800 hover:bg-gray-900">
-                        <td class="px-4 py-3 text-gray-300">{{ $setting->label }}</td>
-                        <td class="px-4 py-3 text-white font-mono truncate max-w-xs">{{ $setting->value }}</td>
-                        <td class="px-4 py-3 text-right">
-                            <a href="{{ route('admin.settings.edit', $setting) }}"
-                               class="text-purple-400 hover:text-purple-300 text-xs">Modifier</a>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <section class="admin-panel">
+            <div class="admin-panel-header">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-fuchsia-300 mb-1">{{ $group }}</p>
+                    <h2 class="admin-panel-title">Paramètres {{ $group }}</h2>
+                    <p class="admin-panel-subtitle">Chaque valeur actuelle est visible avant modification.</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Label</th>
+                            <th>Clé</th>
+                            <th>Valeur actuelle</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($items as $setting)
+                            <tr>
+                                <td>
+                                    <div class="font-semibold text-white">{{ $setting->label }}</div>
+                                    <div class="text-xs text-slate-500">Type : {{ $setting->type }}</div>
+                                </td>
+                                <td><code class="text-fuchsia-300 text-xs">{{ $setting->key }}</code></td>
+                                <td>
+                                    <div class="max-w-md truncate text-slate-300">{{ $setting->value ?: '—' }}</div>
+                                </td>
+                                <td class="text-right">
+                                    <a href="{{ route('admin.settings.edit', $setting) }}" class="btn-secondary">Modifier</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
     @endforeach
 </div>
 @endsection
