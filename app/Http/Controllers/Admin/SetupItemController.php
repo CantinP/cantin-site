@@ -27,6 +27,7 @@ class SetupItemController extends Controller
             'category'      => 'required|string|max:100',
             'description'   => 'nullable|string',
             'image'         => 'nullable|image|max:4096',
+            'image_url'     => 'nullable|url',
             'affiliate_url' => 'nullable|url',
             'price'         => 'nullable|numeric',
             'is_visible'    => 'boolean',
@@ -34,7 +35,10 @@ class SetupItemController extends Controller
         ]);
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('setup', 'public');
+        } elseif (!empty($data['image_url'])) {
+            $data['image_path'] = $data['image_url'];
         }
+        unset($data['image_url']);
         SetupItem::create($data);
         return redirect()->route('admin.setup-items.index')->with('success', 'Élément ajouté.');
     }
@@ -51,22 +55,30 @@ class SetupItemController extends Controller
             'category'      => 'required|string|max:100',
             'description'   => 'nullable|string',
             'image'         => 'nullable|image|max:4096',
+            'image_url'     => 'nullable|url',
             'affiliate_url' => 'nullable|url',
             'price'         => 'nullable|numeric',
             'is_visible'    => 'boolean',
             'order'         => 'integer',
         ]);
         if ($request->hasFile('image')) {
-            if ($setupItem->image_path) Storage::disk('public')->delete($setupItem->image_path);
+            if ($setupItem->image_path && !filter_var($setupItem->image_path, FILTER_VALIDATE_URL)) {
+                Storage::disk('public')->delete($setupItem->image_path);
+            }
             $data['image_path'] = $request->file('image')->store('setup', 'public');
+        } elseif (!empty($data['image_url'])) {
+            $data['image_path'] = $data['image_url'];
         }
+        unset($data['image_url']);
         $setupItem->update($data);
         return redirect()->route('admin.setup-items.index')->with('success', 'Élément mis à jour.');
     }
 
     public function destroy(SetupItem $setupItem)
     {
-        if ($setupItem->image_path) Storage::disk('public')->delete($setupItem->image_path);
+        if ($setupItem->image_path && !filter_var($setupItem->image_path, FILTER_VALIDATE_URL)) {
+            Storage::disk('public')->delete($setupItem->image_path);
+        }
         $setupItem->delete();
         return back()->with('success', 'Élément supprimé.');
     }

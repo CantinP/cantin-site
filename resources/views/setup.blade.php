@@ -1,37 +1,60 @@
 @extends('layouts.app')
 @section('title', 'Mon Setup — Cantin')
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-10">
+<div class="max-w-7xl mx-auto px-4 py-14">
+
+    {{-- Bio / About ──────────────────────────────────────────────── --}}
+    @php $about = \App\Models\Section::getBySlug('about'); @endphp
+    @if($about)
+        <section class="mb-16 rounded-3xl border border-purple-900/50 bg-gray-900/70 p-8 lg:p-12 shadow-2xl shadow-purple-950/20">
+            <h2 class="text-3xl font-bold text-purple-400 mb-6">👋 {{ $about->title }}</h2>
+            <div class="text-gray-300 text-lg leading-8 whitespace-pre-line">{{ $about->content }}</div>
+        </section>
+    @endif
+
+    {{-- Setup ────────────────────────────────────────────────────── --}}
     <h1 class="text-3xl font-bold text-purple-400 mb-2">🖥️ Mon Setup</h1>
-    <p class="text-gray-400 mb-8">Tout le matériel que j'utilise pour streamer.</p>
+    <p class="text-gray-400 mb-10">Tout le matériel que j'utilise pour streamer.</p>
 
     @forelse($items as $category => $categoryItems)
-        <section class="mb-12">
-            <h2 class="text-xl font-bold text-white border-b border-purple-700 pb-2 mb-6 uppercase tracking-widest">
-                {{ $category }}
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <section class="mb-14">
+            <div class="flex items-center gap-4 mb-6">
+                <span class="text-purple-400 text-2xl">
+                    @switch($category)
+                        @case('PC') 💻 @break
+                        @case('Audio') 🎙️ @break
+                        @case('Streaming') 📡 @break
+                        @case('Périphériques') ⌨️ @break
+                        @default 📦
+                    @endswitch
+                </span>
+                <h2 class="text-xl font-bold text-white border-b border-purple-700 pb-2 flex-1 uppercase tracking-widest">{{ $category }}</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 @foreach($categoryItems as $item)
-                    <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-purple-600 transition group">
+                    <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden hover:border-purple-600 hover:shadow-lg hover:shadow-purple-950/30 transition-all group">
                         @if($item->image_path)
-                            <img src="{{ Storage::url($item->image_path) }}"
-                                 alt="{{ $item->name }}"
-                                 class="w-full h-48 object-contain bg-gray-800 p-4">
+                            <div class="w-full h-44 bg-gray-800 flex items-center justify-center p-4 overflow-hidden">
+                                <img src="{{ $item->image_path }}"
+                                     alt="{{ $item->name }}"
+                                     class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                     onerror="this.parentElement.innerHTML='<span class=text-5xl>📦</span>'">
+                            </div>
                         @else
-                            <div class="w-full h-48 bg-gray-800 flex items-center justify-center text-5xl">📦</div>
+                            <div class="w-full h-44 bg-gray-800 flex items-center justify-center text-5xl">📦</div>
                         @endif
                         <div class="p-4">
-                            <h3 class="font-semibold text-white mb-1">{{ $item->name }}</h3>
+                            <h3 class="font-bold text-white mb-1">{{ $item->name }}</h3>
                             @if($item->description)
-                                <p class="text-gray-400 text-sm mb-2">{{ $item->description }}</p>
+                                <p class="text-gray-400 text-sm mb-3 leading-5">{{ $item->description }}</p>
                             @endif
                             @if($item->price)
                                 <span class="text-purple-400 font-bold text-sm">{{ number_format($item->price, 2) }} €</span>
                             @endif
                             @if($item->affiliate_url)
                                 <a href="{{ $item->affiliate_url }}" target="_blank"
-                                   class="block mt-3 text-center bg-purple-700 hover:bg-purple-600 text-white text-sm px-4 py-2 rounded-lg transition">
-                                    Voir le produit
+                                   class="block mt-3 text-center bg-purple-700 hover:bg-purple-600 text-white text-sm px-4 py-2 rounded-xl transition">
+                                    Voir le produit ↗
                                 </a>
                             @endif
                         </div>
@@ -42,5 +65,69 @@
     @empty
         <p class="text-gray-500">Aucun équipement renseigné pour l'instant.</p>
     @endforelse
+
+    {{-- Vidéos YouTube ────────────────────────────────────────────── --}}
+    <section id="videos" class="mt-16">
+        <h2 class="text-3xl font-bold text-red-400 mb-2">🎬 Mes Dernières Vidéos</h2>
+        <p class="text-gray-400 mb-8">Les dernières vidéos de ma chaîne YouTube, mises à jour automatiquement.</p>
+
+        <div id="youtube-videos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-10 text-gray-500">
+                <div class="animate-pulse text-4xl mb-3">📺</div>
+                <p>Chargement des vidéos...</p>
+            </div>
+        </div>
+    </section>
 </div>
+
+<script>
+(function () {
+    const API_KEY     = "{{ \App\Models\SiteSetting::get('youtube_api_key') }}";
+    const CHANNEL_ID  = "{{ \App\Models\SiteSetting::get('youtube_channel_id') }}";
+    const container   = document.getElementById('youtube-videos');
+
+    if (!API_KEY || !CHANNEL_ID) {
+        container.innerHTML = `
+            <div class="col-span-full rounded-2xl border border-yellow-700/40 bg-yellow-950/30 p-6 text-yellow-200 text-sm">
+                ⚠️ Pour activer les vidéos automatiques, configure la <strong>Clé API YouTube</strong>
+                et l'<strong>ID de ta chaîne</strong> dans l'admin → Paramètres → stream.
+                <a href="https://console.developers.google.com/" target="_blank" class="underline ml-1">Obtenir une clé API →</a>
+            </div>`;
+        return;
+    }
+
+    fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=6&type=video`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.items || data.items.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">Aucune vidéo trouvée.</div>';
+                return;
+            }
+            container.innerHTML = data.items.map(item => {
+                const vid = item.id.videoId;
+                const title = item.snippet.title;
+                const thumb = item.snippet.thumbnails.medium.url;
+                const date = new Date(item.snippet.publishedAt).toLocaleDateString('fr-FR');
+                return `
+                    <a href="https://www.youtube.com/watch?v=${vid}" target="_blank" rel="noopener"
+                       class="group block bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden hover:border-red-600 hover:shadow-lg hover:shadow-red-950/30 transition-all">
+                        <div class="relative overflow-hidden">
+                            <img src="${thumb}" alt="${title}"
+                                 class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/50">
+                                <span class="text-5xl">▶️</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-white text-sm leading-5 line-clamp-2 mb-2">${title}</h3>
+                            <span class="text-gray-500 text-xs">${date}</span>
+                        </div>
+                    </a>`;
+            }).join('');
+        })
+        .catch(() => {
+            container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">Impossible de charger les vidéos YouTube.</div>';
+        });
+})();
+</script>
 @endsection

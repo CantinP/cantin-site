@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             SiteSettingSeeder::class,
             SocialLinkSeeder::class,
             SectionSeeder::class,
+            SetupSeeder::class,
         ]);
     }
 }
